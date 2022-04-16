@@ -64,7 +64,11 @@ type Requester struct {
 
 func (r *Requester) SetCrumb(ctx context.Context, ar *APIRequest) error {
 	crumbData := map[string]string{}
-	response, _ := r.GetJSON(ctx, "/crumbIssuer/api/json", &crumbData, nil)
+	response, err := r.GetJSON(ctx, "/crumbIssuer/api/json", &crumbData, nil)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
 
 	if response.StatusCode == 200 && crumbData["crumbRequestField"] != "" {
 		ar.SetHeader(crumbData["crumbRequestField"], crumbData["crumb"])
@@ -227,29 +231,29 @@ func (r *Requester) Do(ctx context.Context, ar *APIRequest, responseStruct inter
 		req.Header.Add(k, ar.Headers.Get(k))
 	}
 
-	if response, err := r.Client.Do(req); err != nil {
+	response, err := r.Client.Do(req)
+	if err != nil {
 		return nil, err
-	} else {
-		if v := ctx.Value("debug"); v != nil {
-			dump, err := httputil.DumpResponse(response, true)
-			if err != nil {
-				log.Fatal(err)
-			}
-			log.Printf("DEBUG %q\n", dump)
-		}
-		errorText := response.Header.Get("X-Error")
-		if errorText != "" {
-			return nil, errors.New(errorText)
-		}
-		switch responseStruct.(type) {
-		case *string:
-			return r.ReadRawResponse(response, responseStruct)
-		default:
-			return r.ReadJSONResponse(response, responseStruct)
-		}
-
 	}
+	defer response.Body.Close()
 
+	if v := ctx.Value("debug"); v != nil {
+		dump, err := httputil.DumpResponse(response, true)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("DEBUG %q\n", dump)
+	}
+	errorText := response.Header.Get("X-Error")
+	if errorText != "" {
+		return nil, errors.New(errorText)
+	}
+	switch responseStruct.(type) {
+	case *string:
+		return r.ReadRawResponse(response, responseStruct)
+	default:
+		return r.ReadJSONResponse(response, responseStruct)
+	}
 }
 
 func (r *Requester) ReadRawResponse(response *http.Response, responseStruct interface{}) (*http.Response, error) {
