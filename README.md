@@ -21,7 +21,7 @@ These are some of the features that are currently implemented:
 
 ## Installation
 
-    go get github.com/bndr/gojenkins
+    go get github.com/liumingmin/gojenkins
 
 ## CLI
 
@@ -36,7 +36,7 @@ For users that would like CLI based on gojenkins, follow the steps below:
 ```go
 
 import (
-  "github.com/bndr/gojenkins"
+  "github.com/liumingmin/gojenkins"
   "context"
   "time"
   "fmt"
@@ -74,13 +74,13 @@ fmt.Printf("build number %d with result: %v\n", build.GetBuildNumber(), build.Ge
 
 ```
 
-API Reference: https://godoc.org/github.com/bndr/gojenkins
+API Reference: https://godoc.org/github.com/liumingmin/gojenkins
 
 ## Examples
 
 For all of the examples below first create a jenkins object
 ```go
-import "github.com/bndr/gojenkins"
+import "github.com/liumingmin/gojenkins"
 
 jenkins, _ := gojenkins.CreateJenkins(nil, "http://localhost:8080/", "admin", "admin").Init(ctx)
 ```
